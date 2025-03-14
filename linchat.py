@@ -12,6 +12,8 @@ import requests  # type: ignore
 from markdown import markdown  # type: ignore
 import textwrap
 import re
+import argparse
+import sys
 
 
 class LinChat(Gtk.Window):
@@ -362,15 +364,52 @@ class LinChat(Gtk.Window):
         return False  # Important for GLib.idle_add
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="LinChat - Minimal LLM Chat for Linux")
+    parser.add_argument("-v", "--version", action="store_true", help="Show version and exit")
+    parser.add_argument("-q", "--query", type=str, help="Query to send immediately")
+    parser.add_argument("-p", "--position", type=str, help="Window position (center, mouse)")
+    parser.add_argument("--width", type=int, default=600, help="Initial window width")
+    parser.add_argument("--height", type=int, default=40, help="Initial window height")
+    return parser.parse_args()
+
 def main():
+    args = parse_args()
+    
+    # Show version and exit if requested
+    if args.version:
+        print("LinChat v0.1.0")
+        sys.exit(0)
+    
+    # Create the application window
     app = LinChat()
     app.connect("destroy", Gtk.main_quit)
-    # First show all, then hide the response area and copy button
+    
+    # Position the window
+    if args.position == "mouse":
+        # Position at mouse cursor
+        display = Gdk.Display.get_default()
+        seat = display.get_default_seat()
+        pointer = seat.get_pointer()
+        screen, x, y = pointer.get_position()
+        app.move(x - args.width // 2, y - 20)
+    else:
+        # Default to center
+        app.set_position(Gtk.WindowPosition.CENTER)
+    
+    # Show all widgets, then hide the ones we don't want initially
     app.show_all()
     app.response_scrolled.set_visible(False)
     app.copy_button.set_visible(False)
-    # Set small initial size
-    app.resize(600, 40)
+    
+    # Set initial size
+    app.resize(args.width, args.height)
+    
+    # If a query was provided, send it immediately
+    if args.query:
+        GLib.idle_add(lambda: app.send_query(args.query))
+    
+    # Start the GTK main loop
     Gtk.main()
 
 

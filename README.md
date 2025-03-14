@@ -120,10 +120,11 @@ You can change the endpoint to use alternative API providers that are compatible
 
 ## Usage
 
-You can start LinChat in three ways:
+You can start LinChat in several ways:
 - Type `linchat` in your terminal
 - Search for "LinChat" in your applications menu
 - Run `./linchat.py` from the project directory
+- Set up a custom keyboard shortcut (see below)
 
 ### Asking Questions
 
@@ -132,6 +133,55 @@ You can start LinChat in three ways:
 3. The window will expand to show the response below your question
 
 Use Shift+Enter to create a new line without submitting.
+
+### Keyboard Shortcuts
+
+- **Enter**: Submit your query
+- **Shift+Enter**: Insert a new line in your query
+- **Escape**: Close the application
+- **Ctrl+C**: Copy selected text (or all text if nothing is selected)
+
+### Command Line Options
+
+LinChat supports various command-line options:
+
+```
+linchat [-h] [-v] [-q QUERY] [-p POSITION] [--width WIDTH] [--height HEIGHT]
+```
+
+- `-h, --help`: Show help message
+- `-v, --version`: Show version and exit
+- `-q, --query "TEXT"`: Submit this query immediately on startup
+- `-p, --position POSITION`: Set window position (center, mouse)
+- `--width WIDTH`: Set initial window width (default: 600)
+- `--height HEIGHT`: Set initial window height (default: 40)
+
+### Setting Up Global Keyboard Shortcuts
+
+#### GNOME
+
+1. Open Settings → Keyboard → Keyboard Shortcuts → Custom Shortcuts
+2. Click "+" to add a new shortcut
+3. Name: "LinChat"
+4. Command: `linchat -p mouse`
+5. Click "Set Shortcut" and press the key combination you want (e.g., `Alt+Space`)
+
+#### KDE Plasma
+
+1. Open System Settings → Shortcuts → Custom Shortcuts
+2. Click "Edit" → "New" → "Global Shortcut" → "Command/URL"
+3. Name the shortcut "LinChat"
+4. Enter the command: `linchat -p mouse`
+5. Click on "Trigger" and set your keyboard shortcut
+6. Click "Apply"
+
+#### i3, Sway, or other tiling window managers
+
+Add to your config file (~/.config/i3/config or similar):
+
+```
+bindsym $mod+space exec linchat -p mouse
+```
 
 ## Customization
 
