@@ -8,8 +8,8 @@ import threading
 import json
 import os
 import configparser
-import requests
-from markdown import markdown
+import requests  # type: ignore
+from markdown import markdown  # type: ignore
 import textwrap
 import re
 
@@ -44,7 +44,7 @@ class LinChat(Gtk.Window):
         self.text_view.set_margin_end(0)
         self.text_view.set_margin_top(0)
         self.text_view.set_margin_bottom(0)
-        
+
         # Connect to "changed" signal to resize the window
         self.text_buffer.connect("changed", self.on_input_changed)
 
@@ -61,17 +61,18 @@ class LinChat(Gtk.Window):
         self.response_view.set_editable(False)
         self.response_view.set_cursor_visible(False)
         self.response_buffer = self.response_view.get_buffer()
-        
+
         # Add text tags for formatting
         self.response_buffer.create_tag("default", foreground="#ffffff")
-        self.response_buffer.create_tag("code", foreground="#ffffff", background="#2d2d2d", 
-                                      family="monospace", left_margin=20, right_margin=20)
+        self.response_buffer.create_tag(
+            "code", foreground="#ffffff", background="#2d2d2d", family="monospace", left_margin=20, right_margin=20
+        )
         self.response_buffer.create_tag("h1", foreground="#ffffff", weight=Pango.Weight.BOLD, scale=1.5)
         self.response_buffer.create_tag("h2", foreground="#ffffff", weight=Pango.Weight.BOLD, scale=1.3)
         self.response_buffer.create_tag("h3", foreground="#ffffff", weight=Pango.Weight.BOLD, scale=1.1)
         self.response_buffer.create_tag("bold", weight=Pango.Weight.BOLD)
         self.response_buffer.create_tag("italic", style=Pango.Style.ITALIC)
-        
+
         # Create TextView container
         self.response_scrolled = Gtk.ScrolledWindow()
         self.response_scrolled.set_hexpand(True)
@@ -168,38 +169,32 @@ class LinChat(Gtk.Window):
     def send_query(self, query):
         try:
             # Clear the buffer
-            self.response_buffer.delete(
-                self.response_buffer.get_start_iter(),
-                self.response_buffer.get_end_iter()
-            )
-            
+            self.response_buffer.delete(self.response_buffer.get_start_iter(), self.response_buffer.get_end_iter())
+
             # Add loading text with tag
-            self.response_buffer.insert_with_tags_by_name(
-                self.response_buffer.get_end_iter(),
-                "⏳ Thinking...",
-                "h2"
-            )
-            
+            self.response_buffer.insert_with_tags_by_name(self.response_buffer.get_end_iter(), "⏳ Thinking...", "h2")
+
             # Show response area and resize window
             self.response_scrolled.set_visible(True)
             self.response_view.set_visible(True)
             self.response_scrolled.show_all()
             self.resize(600, 400)
-            
+
             # Force UI update
             while Gtk.events_pending():
                 Gtk.main_iteration()
-            
+
             print("TextView should be showing loading message...")
-            
+
             # Make the API call in a separate thread
             thread = threading.Thread(target=self.call_api, args=(query,))
             thread.daemon = True
             thread.start()
-            
+
         except Exception as e:
             print(f"Error in send_query: {str(e)}")
             import traceback
+
             traceback.print_exc()
 
     def call_api(self, query):
@@ -258,58 +253,52 @@ class LinChat(Gtk.Window):
     def on_input_changed(self, buffer):
         # Count lines
         text = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True)
-        line_count = text.count('\n') + 1
-        
+        line_count = text.count("\n") + 1
+
         # Calculate height based on number of lines (up to 10 lines)
         line_height = 20  # Approximate height of a line
         input_height = min(line_height * 10, max(line_height, line_height * line_count))
-        
+
         # Resize input area if needed
         if not self.response_scrolled.get_visible():
             # Only resize window if response is not visible
             self.resize(600, input_height + 40)  # Add padding
-        
+
         return False
-        
+
     def update_response(self, text):
         # Debug output
         print(f"Updating response text (length: {len(text)})")
         print(f"First 50 chars: {text[:50]}")
-        
+
         try:
             # Clear the buffer
-            self.response_buffer.delete(
-                self.response_buffer.get_start_iter(),
-                self.response_buffer.get_end_iter()
-            )
-            
+            self.response_buffer.delete(self.response_buffer.get_start_iter(), self.response_buffer.get_end_iter())
+
             # Insert text with basic formatting
-            self.response_buffer.insert_with_tags_by_name(
-                self.response_buffer.get_end_iter(),
-                text,
-                "default"
-            )
-            
+            self.response_buffer.insert_with_tags_by_name(self.response_buffer.get_end_iter(), text, "default")
+
             # Make sure response view is visible and update display
             self.response_scrolled.set_visible(True)
             self.response_view.set_visible(True)
             self.response_scrolled.show_all()
-            
+
             # Resize window to show response
             height = min(800, max(400, len(text) // 3 + 100))
             self.resize(600, height)
-            
+
             # Process any pending events to ensure UI updates
             while Gtk.events_pending():
                 Gtk.main_iteration()
-            
+
             print("Response text should be visible now")
-            
+
         except Exception as e:
             print(f"Error updating response: {str(e)}")
             import traceback
+
             traceback.print_exc()
-            
+
         return False  # Important for GLib.idle_add
 
 

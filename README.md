@@ -20,23 +20,65 @@ A minimal, borderless GTK application for quickly interacting with LLMs on Linux
 
 ## Installation
 
+### Quick Install (from source)
+
+#### Using Make (recommended)
+
 1. Clone this repository:
    ```bash
    git clone https://github.com/yourusername/linchat.git
    cd linchat
    ```
 
-2. Run the setup script:
+2. Install dependencies:
    ```bash
-   ./setup.sh
+   make deps
    ```
 
+3. Install the application:
+   ```bash
+   sudo make install
+   ```
+
+#### Using the setup script
+
+Alternatively, you can use the setup script for a user-local installation:
+
+```bash
+./setup.sh
+```
+
 The setup script will:
-- Install required dependencies (GTK, requests, markdown)
+- Install required dependencies
 - Create a default configuration
 - Create a desktop entry
 - Make the application executable
 - Create a symbolic link in `~/bin`
+
+### Package Installation
+
+#### Arch Linux (AUR)
+
+```bash
+yay -S linchat
+```
+
+Or manually:
+```bash
+git clone https://aur.archlinux.org/linchat.git
+cd linchat
+makepkg -si
+```
+
+#### Ubuntu/Debian (PPA)
+
+```bash
+sudo add-apt-repository ppa:yourname/linchat
+sudo apt update
+sudo apt install linchat
+```
+
+See the [packaging documentation](pkg/README.md) for more details on building packages for different distributions.
 
 ## Configuration
 
