@@ -59,8 +59,11 @@ class LinChat(Gtk.Window):
         self.response_view = Gtk.TextView()
         self.response_view.set_wrap_mode(Gtk.WrapMode.WORD)
         self.response_view.set_editable(False)
-        self.response_view.set_cursor_visible(False)
+        self.response_view.set_cursor_visible(True)  # Show cursor for selection
         self.response_buffer = self.response_view.get_buffer()
+
+        # Enable text selection
+        self.response_view.set_can_focus(True)
 
         # Add text tags for formatting
         self.response_buffer.create_tag("default", foreground="#ffffff")
@@ -80,6 +83,12 @@ class LinChat(Gtk.Window):
         self.response_scrolled.add(self.response_view)
         self.response_scrolled.set_no_show_all(True)  # Initially hidden
         self.main_box.pack_start(self.response_scrolled, True, True, 0)
+        
+        # Add copy button below response area
+        self.copy_button = Gtk.Button(label="Copy to Clipboard")
+        self.copy_button.connect("clicked", self.on_copy_clicked)
+        self.copy_button.set_no_show_all(True)  # Initially hidden
+        self.main_box.pack_start(self.copy_button, False, False, 5)
 
         # Load configuration
         self.config = self.load_config()
@@ -130,13 +139,27 @@ class LinChat(Gtk.Window):
             background-color: #1e1e1e;
             color: #ffffff;
         }
-        textview:selected {
+        textview:selected, textview text:selected {
             background-color: #3584e4;
             color: #ffffff;
         }
         scrolledwindow {
             border: none;
             background-color: #1e1e1e;
+        }
+        button {
+            background-color: #3584e4;
+            color: #ffffff;
+            border-radius: 4px;
+            padding: 6px 12px;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+        button:hover {
+            background-color: #4a90e2;
+        }
+        button:active {
+            background-color: #2c6cb9;
         }
         """
         css_provider.load_from_data(css.encode())
@@ -163,6 +186,27 @@ class LinChat(Gtk.Window):
 
             if text.strip():
                 self.send_query(text)
+                return True
+        elif event.keyval == Gdk.KEY_c and (event.state & Gdk.ModifierType.CONTROL_MASK):
+            # Ctrl+C - Copy selected text or all text in the response view
+            if self.response_scrolled.get_visible():
+                # Check if there's a selection in the response buffer
+                bounds = self.response_buffer.get_selection_bounds()
+                if bounds:  # Selection exists
+                    start, end = bounds
+                    text = self.response_buffer.get_text(start, end, True)
+                else:  # No selection, copy all text
+                    start = self.response_buffer.get_start_iter()
+                    end = self.response_buffer.get_end_iter()
+                    text = self.response_buffer.get_text(start, end, True)
+                
+                # Copy to clipboard
+                clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+                clipboard.set_text(text, -1)
+                
+                # Show feedback on the copy button
+                self.copy_button.set_label("Copied!")
+                GLib.timeout_add(1500, lambda: self.copy_button.set_label("Copy to Clipboard"))
                 return True
         return False
 
@@ -266,6 +310,20 @@ class LinChat(Gtk.Window):
 
         return False
 
+    def on_copy_clicked(self, button):
+        # Get all text from the response buffer
+        start_iter = self.response_buffer.get_start_iter()
+        end_iter = self.response_buffer.get_end_iter()
+        text = self.response_buffer.get_text(start_iter, end_iter, True)
+        
+        # Copy to clipboard
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text(text, -1)
+        
+        # Show feedback
+        self.copy_button.set_label("Copied!")
+        GLib.timeout_add(1500, lambda: self.copy_button.set_label("Copy to Clipboard"))
+        
     def update_response(self, text):
         # Debug output
         print(f"Updating response text (length: {len(text)})")
@@ -278,14 +336,16 @@ class LinChat(Gtk.Window):
             # Insert text with basic formatting
             self.response_buffer.insert_with_tags_by_name(self.response_buffer.get_end_iter(), text, "default")
 
-            # Make sure response view is visible and update display
+            # Make sure response view and copy button are visible and update display
             self.response_scrolled.set_visible(True)
             self.response_view.set_visible(True)
+            self.copy_button.set_visible(True)
             self.response_scrolled.show_all()
+            self.copy_button.show_all()
 
-            # Resize window to show response
+            # Resize window to show response and copy button
             height = min(800, max(400, len(text) // 3 + 100))
-            self.resize(600, height)
+            self.resize(600, height + 40)  # Add space for the copy button
 
             # Process any pending events to ensure UI updates
             while Gtk.events_pending():
@@ -305,9 +365,10 @@ class LinChat(Gtk.Window):
 def main():
     app = LinChat()
     app.connect("destroy", Gtk.main_quit)
-    # First show all, then hide the response area
+    # First show all, then hide the response area and copy button
     app.show_all()
     app.response_scrolled.set_visible(False)
+    app.copy_button.set_visible(False)
     # Set small initial size
     app.resize(600, 40)
     Gtk.main()

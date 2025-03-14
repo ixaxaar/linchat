@@ -26,7 +26,7 @@ A minimal, borderless GTK application for quickly interacting with LLMs on Linux
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/linchat.git
+   git clone https://github.com/ixaxaar/linchat.git
    cd linchat
    ```
 

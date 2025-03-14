@@ -4,11 +4,11 @@ pkgver=0.1.0
 pkgrel=1
 pkgdesc="A minimal, borderless GTK application for quickly interacting with LLMs on Linux"
 arch=('any')
-url="https://github.com/yourusername/linchat"
+url="https://github.com/ixaxaar/linchat"
 license=('MIT')
 depends=('python' 'python-gobject' 'gtk3' 'python-requests' 'python-markdown')
 makedepends=('git')
-source=("git+https://github.com/yourusername/linchat.git")
+source=("git+https://github.com/ixaxaar/linchat.git")
 sha256sums=('SKIP')
 
 package() {

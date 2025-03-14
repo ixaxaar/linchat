@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: linchat
 Upstream-Contact: ixaxaar <root@ixaxaar.in>
-Source: https://github.com/yourusername/linchat
+Source: https://github.com/ixaxaar/linchat
 
 Files: *
 Copyright: 2025 ixaxaar <root@ixaxaar.in>
