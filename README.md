@@ -5,10 +5,7 @@ A minimal, borderless GTK application for quickly interacting with LLMs on Linux
 ## Features
 
 - Ultra-minimal UI with no window decorations or borders
-- Starts as a small input box that expands to show responses
-- Input box grows with multi-line input
 - Configurable to work with any LLM API compatible with OpenAI's interface
-- Clean text display with basic formatting for responses
 - Easy to move around your desktop (click and drag)
 - Press Escape to close, Enter to submit query, Shift+Enter for new line
 
