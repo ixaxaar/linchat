@@ -80,6 +80,31 @@ sudo apt install linchat
 
 See the [packaging documentation](pkg/README.md) for more details on building packages for different distributions.
 
+## Development
+
+### Makefile Commands
+
+LinChat includes a Makefile with several useful commands:
+
+- `make deps` - Install all dependencies
+- `make run` - Run the application
+- `make lint` - Run linting checks
+- `make install` - Install the application system-wide
+- `make uninstall` - Uninstall the application
+- `make clean` - Clean build artifacts
+- `make package` - Build packages for all platforms
+- `make package-arch` - Build just the Arch Linux package
+- `make package-deb` - Build just the Debian/Ubuntu package
+- `make update-version VERSION=x.y.z` - Update version numbers in package files
+
+### Requirements
+
+Python dependencies are listed in `requirements.txt` and can be installed with:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Configuration
 
 Edit the configuration file at `~/.config/linchat/config.ini`:
