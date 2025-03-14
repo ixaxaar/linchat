@@ -85,7 +85,7 @@ class LinChat(Gtk.Window):
         self.response_scrolled.add(self.response_view)
         self.response_scrolled.set_no_show_all(True)  # Initially hidden
         self.main_box.pack_start(self.response_scrolled, True, True, 0)
-        
+
         # Add copy button below response area
         self.copy_button = Gtk.Button(label="Copy to Clipboard")
         self.copy_button.connect("clicked", self.on_copy_clicked)
@@ -105,64 +105,109 @@ class LinChat(Gtk.Window):
         # Default configuration
         if not os.path.exists(config_path):
             os.makedirs(os.path.dirname(config_path), exist_ok=True)
+
+            # API configuration
             config["API"] = {
                 "endpoint": "https://api.openai.com/v1/chat/completions",
                 "api_key": "",
                 "model": "gpt-3.5-turbo",
             }
+
+            # UI Colors
+            config["Colors"] = {
+                "background": "#1e1e1e",
+                "text": "#ffffff",
+                "text_selection": "#3584e4",
+                "button": "#3584e4",
+                "button_hover": "#4a90e2",
+                "button_active": "#2c6cb9",
+                "button_text": "#ffffff",
+            }
+
+            # UI options
+            config["UI"] = {
+                "font_family": "Ubuntu Mono, monospace",
+                "font_size": "12",
+                "border_radius": "4",
+                "padding": "6",
+            }
+
             with open(config_path, "w") as configfile:
                 config.write(configfile)
         else:
             config.read(config_path)
 
+            # Ensure all sections exist
+            if "Colors" not in config:
+                config["Colors"] = {}
+            if "UI" not in config:
+                config["UI"] = {}
+
         return config
 
     def apply_css(self):
+        # Get colors from config
+        colors = self.config["Colors"]
+        background = colors.get("background", "#1e1e1e")
+        text_color = colors.get("text", "#ffffff")
+        text_selection = colors.get("text_selection", "#3584e4")
+        button_color = colors.get("button", "#3584e4")
+        button_hover = colors.get("button_hover", "#4a90e2")
+        button_active = colors.get("button_active", "#2c6cb9")
+        button_text = colors.get("button_text", "#ffffff")
+
+        # Get UI options
+        ui = self.config["UI"]
+        font_family = ui.get("font_family", "Ubuntu Mono, monospace")
+        font_size = ui.get("font_size", "12")
+        border_radius = ui.get("border_radius", "4")
+        padding = ui.get("padding", "6")
+
         css_provider = Gtk.CssProvider()
-        css = """
-        window {
-            background-color: #1e1e1e;
+        css = f"""
+        window {{
+            background-color: {background};
             border: none;
             box-shadow: none;
-        }
-        textview {
-            padding: 8px;
+        }}
+        textview {{
+            padding: 18px;
             border: none;
-            background-color: #1e1e1e;
-            color: #ffffff;
-            font-family: 'Ubuntu Mono', monospace;
-            font-size: 12pt;
-        }
-        textview text {
-            background-color: #1e1e1e;
-            color: #ffffff;
-        }
-        .response-view text {
-            background-color: #1e1e1e;
-            color: #ffffff;
-        }
-        textview:selected, textview text:selected {
-            background-color: #3584e4;
-            color: #ffffff;
-        }
-        scrolledwindow {
+            background-color: {background};
+            color: {text_color};
+            font-family: '{font_family}';
+            font-size: {font_size}pt;
+        }}
+        textview text {{
+            background-color: {background};
+            color: {text_color};
+        }}
+        .response-view text {{
+            background-color: {background};
+            color: {text_color};
+        }}
+        textview:selected, textview text:selected {{
+            background-color: {text_selection};
+            color: {text_color};
+        }}
+        scrolledwindow {{
             border: none;
-            background-color: #1e1e1e;
-        }
-        button {
-            background-color: #3584e4;
-            color: #ffffff;
-            border-radius: 4px;
-            padding: 6px 12px;
+            background-color: {background};
+        }}
+        button {{
+            background-color: {button_color};
+            color: {button_text};
+            border-radius: {border_radius}px;
+            padding: {padding}px 12px;
             border: none;
             transition: background-color 0.2s ease;
-        }
-        button:hover {
-            background-color: #4a90e2;
-        }
-        button:active {
-            background-color: #2c6cb9;
-        }
+        }}
+        button:hover {{
+            background-color: {button_hover};
+        }}
+        button:active {{
+            background-color: {button_active};
+        }}
         """
         css_provider.load_from_data(css.encode())
 
@@ -201,11 +246,11 @@ class LinChat(Gtk.Window):
                     start = self.response_buffer.get_start_iter()
                     end = self.response_buffer.get_end_iter()
                     text = self.response_buffer.get_text(start, end, True)
-                
+
                 # Copy to clipboard
                 clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
                 clipboard.set_text(text, -1)
-                
+
                 # Show feedback on the copy button
                 self.copy_button.set_label("Copied!")
                 GLib.timeout_add(1500, lambda: self.copy_button.set_label("Copy to Clipboard"))
@@ -317,15 +362,15 @@ class LinChat(Gtk.Window):
         start_iter = self.response_buffer.get_start_iter()
         end_iter = self.response_buffer.get_end_iter()
         text = self.response_buffer.get_text(start_iter, end_iter, True)
-        
+
         # Copy to clipboard
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         clipboard.set_text(text, -1)
-        
+
         # Show feedback
         self.copy_button.set_label("Copied!")
         GLib.timeout_add(1500, lambda: self.copy_button.set_label("Copy to Clipboard"))
-        
+
     def update_response(self, text):
         # Debug output
         print(f"Updating response text (length: {len(text)})")
@@ -373,18 +418,19 @@ def parse_args():
     parser.add_argument("--height", type=int, default=40, help="Initial window height")
     return parser.parse_args()
 
+
 def main():
     args = parse_args()
-    
+
     # Show version and exit if requested
     if args.version:
         print("LinChat v0.1.0")
         sys.exit(0)
-    
+
     # Create the application window
     app = LinChat()
     app.connect("destroy", Gtk.main_quit)
-    
+
     # Position the window
     if args.position == "mouse":
         # Position at mouse cursor
@@ -396,19 +442,19 @@ def main():
     else:
         # Default to center
         app.set_position(Gtk.WindowPosition.CENTER)
-    
+
     # Show all widgets, then hide the ones we don't want initially
     app.show_all()
     app.response_scrolled.set_visible(False)
     app.copy_button.set_visible(False)
-    
+
     # Set initial size
     app.resize(args.width, args.height)
-    
+
     # If a query was provided, send it immediately
     if args.query:
         GLib.idle_add(lambda: app.send_query(args.query))
-    
+
     # Start the GTK main loop
     Gtk.main()
 

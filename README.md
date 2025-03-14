@@ -109,14 +109,115 @@ pip install -r requirements.txt
 
 Edit the configuration file at `~/.config/linchat/config.ini`:
 
+### API Configuration
+
 ```ini
 [API]
+# The API endpoint to use
 endpoint = https://api.openai.com/v1/chat/completions
+# Your API key
 api_key = your_api_key_here
+# The model to use for completion
 model = gpt-3.5-turbo
 ```
 
 You can change the endpoint to use alternative API providers that are compatible with OpenAI's API format, such as local LLM servers, Anthropic Claude, etc.
+
+### UI Customization
+
+You can customize the colors and appearance of LinChat by editing these sections:
+
+```ini
+[Colors]
+# Main background color
+background = #1e1e1e
+# Text color
+text = #ffffff
+# Text selection highlight color
+text_selection = #3584e4
+# Button color
+button = #3584e4
+# Button hover state color
+button_hover = #4a90e2
+# Button active (pressed) state color
+button_active = #2c6cb9
+# Button text color
+button_text = #ffffff
+
+[UI]
+# Font family for the application
+font_family = Ubuntu Mono, monospace
+# Font size in points
+font_size = 12
+# Border radius for UI elements (buttons) in pixels
+border_radius = 4
+# Padding for buttons in pixels
+padding = 6
+```
+
+### Complete Configuration Example
+
+Here's a complete configuration example with all available options:
+
+```ini
+[API]
+endpoint = https://api.openai.com/v1/chat/completions
+api_key = sk-your-api-key-here
+model = gpt-3.5-turbo
+
+[Colors]
+background = #1e1e1e
+text = #ffffff
+text_selection = #3584e4
+button = #3584e4
+button_hover = #4a90e2
+button_active = #2c6cb9
+button_text = #ffffff
+
+[UI]
+font_family = Ubuntu Mono, monospace
+font_size = 12
+border_radius = 4
+padding = 6
+```
+
+### Theme Examples
+
+#### Dark Theme (Default)
+```ini
+[Colors]
+background = #1e1e1e
+text = #ffffff
+text_selection = #3584e4
+button = #3584e4
+button_hover = #4a90e2
+button_active = #2c6cb9
+button_text = #ffffff
+```
+
+#### Light Theme
+```ini
+[Colors]
+background = #f5f5f5
+text = #2a2a2a
+text_selection = #add8e6
+button = #007bff
+button_hover = #0069d9
+button_active = #0062cc
+button_text = #ffffff
+```
+
+#### Nord Theme
+```ini
+[Colors]
+background = #2e3440
+text = #eceff4
+text_selection = #5e81ac
+button = #81a1c1
+button_hover = #88c0d0
+button_active = #5e81ac
+button_text = #eceff4
+```
 
 ## Usage
 
