@@ -2,6 +2,8 @@
 
 A minimal, borderless GTK application for quickly interacting with LLMs on Linux.
 
+![screenshot.png](./assets/screenshot.png)
+
 ## Features
 
 - Ultra-minimal UI with no window decorations or borders
