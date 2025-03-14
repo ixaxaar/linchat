@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=LinChat
+Comment=Minimal LLM Chat for Linux
+Exec=linchat
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=llm;ai;assistant;openai;

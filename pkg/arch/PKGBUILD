@@ -1,0 +1,35 @@
+# Maintainer: ixaxaar <root@ixaxaar.in>
+pkgname=linchat
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A minimal, borderless GTK application for quickly interacting with LLMs on Linux"
+arch=('any')
+url="https://github.com/yourusername/linchat"
+license=('MIT')
+depends=('python' 'python-gobject' 'gtk3' 'python-requests' 'python-markdown')
+makedepends=('git')
+source=("git+https://github.com/yourusername/linchat.git")
+sha256sums=('SKIP')
+
+package() {
+  cd "$srcdir/$pkgname"
+
+  # Install main script
+  install -Dm755 linchat.py "$pkgdir/usr/bin/linchat"
+
+  # Install config file
+  install -Dm644 /dev/null "$pkgdir/etc/linchat/config.ini.example"
+  echo "[API]" >"$pkgdir/etc/linchat/config.ini.example"
+  echo "endpoint = https://api.openai.com/v1/chat/completions" >>"$pkgdir/etc/linchat/config.ini.example"
+  echo "api_key = your_api_key_here" >>"$pkgdir/etc/linchat/config.ini.example"
+  echo "model = gpt-3.5-turbo" >>"$pkgdir/etc/linchat/config.ini.example"
+
+  # Install desktop file
+  install -Dm644 pkg/arch/linchat.desktop "$pkgdir/usr/share/applications/linchat.desktop"
+
+  # Install README
+  install -Dm644 README.md "$pkgdir/usr/share/doc/linchat/README.md"
+
+  # Install license
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/linchat/LICENSE"
+}

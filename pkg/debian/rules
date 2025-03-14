@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=linchat
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_build:
+	# Nothing to build for a script
+
+override_dh_auto_install:
+	mkdir -p debian/linchat/usr/bin
+	cp $(CURDIR)/linchat.py debian/linchat/usr/bin/linchat
+	chmod 755 debian/linchat/usr/bin/linchat
+	
+	mkdir -p debian/linchat/usr/share/applications
+	cp $(CURDIR)/pkg/debian/linchat.desktop debian/linchat/usr/share/applications/
+	
+	mkdir -p debian/linchat/etc/linchat
+	echo "[API]" > debian/linchat/etc/linchat/config.ini.example
+	echo "endpoint = https://api.openai.com/v1/chat/completions" >> debian/linchat/etc/linchat/config.ini.example
+	echo "api_key = your_api_key_here" >> debian/linchat/etc/linchat/config.ini.example
+	echo "model = gpt-3.5-turbo" >> debian/linchat/etc/linchat/config.ini.example
+	
+	mkdir -p debian/linchat/usr/share/doc/linchat
+	cp $(CURDIR)/README.md debian/linchat/usr/share/doc/linchat/
