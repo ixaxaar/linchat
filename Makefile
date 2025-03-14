@@ -14,7 +14,7 @@ NC = \033[0m
 
 .PHONY: all install uninstall clean run deps lint package-arch package-deb package update-version
 
-all: lint
+all: run
 
 # Install dependencies
 deps:
@@ -50,23 +50,23 @@ install:
 	@mkdir -p $(BINDIR)
 	@cp linchat.py $(BINDIR)/linchat
 	@chmod 755 $(BINDIR)/linchat
-	
+
 	@echo "$(YELLOW)Installing desktop file...$(NC)"
 	@mkdir -p $(APPDIR)
 	@cp pkg/arch/linchat.desktop $(APPDIR)/
-	
+
 	@echo "$(YELLOW)Installing configuration files...$(NC)"
 	@mkdir -p $(CONFDIR)
 	@echo "[API]" > $(CONFDIR)/config.ini.example
 	@echo "endpoint = https://api.openai.com/v1/chat/completions" >> $(CONFDIR)/config.ini.example
 	@echo "api_key = your_api_key_here" >> $(CONFDIR)/config.ini.example
 	@echo "model = gpt-3.5-turbo" >> $(CONFDIR)/config.ini.example
-	
+
 	@echo "$(YELLOW)Installing documentation...$(NC)"
 	@mkdir -p $(DOCDIR)
 	@cp README.md $(DOCDIR)/
 	@cp LICENSE $(DOCDIR)/
-	
+
 	@echo "$(GREEN)Installation complete!$(NC)"
 	@echo "Configuration example is at $(CONFDIR)/config.ini.example"
 	@echo "Create your own config at ~/.config/linchat/config.ini"

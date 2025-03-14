@@ -25,7 +25,7 @@ class LinChat(Gtk.Window):
         self.set_keep_above(True)  # Stay on top
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_default_size(600, 40)  # Very small initially
-        self.set_border_width(0)
+        self.set_border_width(10)
 
         # Make window movable
         self.connect("button-press-event", self.on_window_click)
@@ -87,7 +87,7 @@ class LinChat(Gtk.Window):
         self.main_box.pack_start(self.response_scrolled, True, True, 0)
 
         # Add copy button below response area
-        self.copy_button = Gtk.Button(label="Copy to Clipboard")
+        self.copy_button = Gtk.Button(label="Copy 📋")
         self.copy_button.connect("clicked", self.on_copy_clicked)
         self.copy_button.set_no_show_all(True)  # Initially hidden
         self.main_box.pack_start(self.copy_button, False, False, 5)
