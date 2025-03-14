@@ -2,7 +2,7 @@
 
 A minimal, borderless GTK application for quickly interacting with LLMs on Linux.
 
-![screenshot.png](./assets/screenshot.png)
+![screenshot.png](./assets/linchat.gif)
 
 ## Features
 
