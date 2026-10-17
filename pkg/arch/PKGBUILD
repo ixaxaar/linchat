@@ -1,18 +1,19 @@
 # Maintainer: ixaxaar <root@ixaxaar.in>
-pkgname=linchat
+pkgname=linchat-gtk
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A minimal, borderless GTK application for quickly interacting with LLMs on Linux"
 arch=('any')
 url="https://github.com/ixaxaar/linchat"
 license=('MIT')
-depends=('python' 'python-gobject' 'gtk3' 'python-requests' 'python-markdown')
+depends=('python' 'python-gobject' 'gtk3' 'glib2' 'pango' 'python-requests' 'python-markdown')
 makedepends=('git')
-source=("git+https://github.com/ixaxaar/linchat.git")
+conflicts=('linchat')
+source=("git+https://github.com/ixaxaar/linchat.git#tag=v0.1.0")
 sha256sums=('SKIP')
 
 package() {
-  cd "$srcdir/$pkgname"
+  cd "$srcdir/linchat"
 
   # Install main script
   install -Dm755 linchat.py "$pkgdir/usr/bin/linchat"
@@ -31,5 +32,5 @@ package() {
   install -Dm644 README.md "$pkgdir/usr/share/doc/linchat/README.md"
 
   # Install license
-  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/linchat/LICENSE"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/linchat-gtk/LICENSE"
 }
