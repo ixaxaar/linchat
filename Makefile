@@ -12,7 +12,7 @@ YELLOW = \033[1;33m
 GREEN = \033[1;32m
 NC = \033[0m
 
-.PHONY: all install uninstall clean run deps lint package-arch package-deb package update-version
+.PHONY: all install uninstall clean run deps lint test package-arch package-deb package update-version
 
 all: run
 
@@ -33,11 +33,15 @@ deps:
 lint:
 	@echo "$(YELLOW)Linting Python code...$(NC)"
 	@if command -v pycodestyle >/dev/null 2>&1; then \
-		pycodestyle --ignore=E501 linchat.py; \
+		pycodestyle --ignore=E501 linchat.py linchat/; \
 	else \
 		echo "pycodestyle not found. Skipping lint."; \
 		echo "Install with: pip install pycodestyle"; \
 	fi
+
+# Run unit tests
+test:
+	@python3 -m pytest tests/ -q
 
 # Run the application
 run:
