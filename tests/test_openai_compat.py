@@ -59,6 +59,39 @@ def test_stream_emits_text_toolcall_usage_done(monkeypatch, fx):
     assert done.reason == "tool_calls"
 
 
+def test_stream_flushes_tool_calls_without_finish_chunk(monkeypatch):
+    # Compat servers (llama.cpp, LM Studio, vLLM) may end the stream after
+    # tool-call deltas with plain [DONE] — no finish_reason=tool_calls chunk.
+    fixture = [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_9","type":"function","function":{"name":"fs.read","arguments":"{\\"path\\":"}}]},"finish_reason":null}]}',
+        "",
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"/tmp\\"}"}}]},"finish_reason":null}]}',
+        "",
+        'data: {"choices":[{"delta":{},"finish_reason":null}],"usage":{"prompt_tokens":7,"completion_tokens":2}}',
+        "",
+        "data: [DONE]",
+        "",
+    ]
+
+    class FakeResp:
+        status_code = 200
+
+        def iter_lines(self, decode_unicode=True):
+            return iter(fixture)
+
+    monkeypatch.setattr(requests, "post", lambda *a, **k: FakeResp())
+    p = openai_compat.OpenAICompatProvider(name="lmstudio", base_url="http://localhost:1234/v1",
+                                            api_key="", model="m")
+    events = collect(p.stream([Message(role="user", content="read /tmp")]))
+
+    tcs = [e for e in events if isinstance(e, ToolCall)]
+    assert len(tcs) == 1
+    assert tcs[0].id == "call_9" and tcs[0].name == "fs.read"
+    assert tcs[0].args == {"path": "/tmp"}
+    done = [e for e in events if isinstance(e, Done)][0]
+    assert done.reason == "tool_calls"
+
+
 def test_stream_error_yields_errorevent(monkeypatch):
     class FakeResp:
         status_code = 401

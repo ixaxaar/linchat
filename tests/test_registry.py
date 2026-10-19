@@ -31,6 +31,7 @@ class FakeConfig:
 def test_config_and_env_providers_merge(monkeypatch):
     monkeypatch.setattr(registry, "_keyring_get", lambda name: None)
     monkeypatch.setattr("linchat.providers.registry.detect_agents", lambda ov, which=None: [])
+    monkeypatch.setattr("linchat.providers.registry.OllamaProvider.available", lambda self: False)
     cfg = FakeConfig({"openai": {"type": "openai", "api_key": "cfg-key", "model": "gpt-5"}},
                      env={"ANTHROPIC_API_KEY": "ak"})
     reg = registry.Registry(cfg)
@@ -41,6 +42,7 @@ def test_config_and_env_providers_merge(monkeypatch):
 def test_missing_api_key_omits_provider(monkeypatch):
     monkeypatch.setattr(registry, "_keyring_get", lambda name: None)
     monkeypatch.setattr("linchat.providers.registry.detect_agents", lambda ov, which=None: [])
+    monkeypatch.setattr("linchat.providers.registry.OllamaProvider.available", lambda self: False)
     cfg = FakeConfig({"openai": {"type": "openai", "api_key": ""}}, env={})
     reg = registry.Registry(cfg)
     assert [p.name for p in reg.providers()] == []
@@ -49,6 +51,7 @@ def test_missing_api_key_omits_provider(monkeypatch):
 def test_keyring_fallback(monkeypatch):
     monkeypatch.setattr(registry, "_keyring_get", lambda name: "kr-key" if name == "openai" else None)
     monkeypatch.setattr("linchat.providers.registry.detect_agents", lambda ov, which=None: [])
+    monkeypatch.setattr("linchat.providers.registry.OllamaProvider.available", lambda self: False)
     cfg = FakeConfig({"openai": {"type": "openai", "api_key": ""}}, env={})
     reg = registry.Registry(cfg)
     assert [p.name for p in reg.providers()] == ["openai"]
@@ -57,6 +60,7 @@ def test_keyring_fallback(monkeypatch):
 def test_env_key_fills_config_section_without_key(monkeypatch):
     monkeypatch.setattr(registry, "_keyring_get", lambda name: None)
     monkeypatch.setattr("linchat.providers.registry.detect_agents", lambda ov, which=None: [])
+    monkeypatch.setattr("linchat.providers.registry.OllamaProvider.available", lambda self: False)
     cfg = FakeConfig({"groq": {"type": "openai", "model": "llama-3.3-70b-versatile"}},
                      env={"GROQ_API_KEY": "env-key"})
     reg = registry.Registry(cfg)
@@ -69,6 +73,7 @@ def test_env_key_fills_config_section_without_key(monkeypatch):
 def test_default_prefers_configured_then_hosted(monkeypatch):
     monkeypatch.setattr(registry, "_keyring_get", lambda name: None)
     monkeypatch.setattr("linchat.providers.registry.detect_agents", lambda ov, which=None: [])
+    monkeypatch.setattr("linchat.providers.registry.OllamaProvider.available", lambda self: False)
 
     class FakeAgent:
         name = "opencode"
@@ -88,6 +93,7 @@ def test_default_prefers_configured_then_hosted(monkeypatch):
 def test_null_provider_when_empty(monkeypatch):
     monkeypatch.setattr(registry, "_keyring_get", lambda name: None)
     monkeypatch.setattr("linchat.providers.registry.detect_agents", lambda ov, which=None: [])
+    monkeypatch.setattr("linchat.providers.registry.OllamaProvider.available", lambda self: False)
     reg = registry.Registry(FakeConfig({}, env={}))
     ev = list(reg.default().stream([Message(role="user", content="x")]))
     assert isinstance(ev[0], ErrorEvent)

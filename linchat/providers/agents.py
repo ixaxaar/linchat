@@ -12,6 +12,7 @@ import dataclasses
 import json
 import shlex
 import subprocess
+import threading
 from typing import Iterator
 
 from .base import Done, ErrorEvent, Event, Message, TextDelta
@@ -83,6 +84,17 @@ class AgentProvider:
         except OSError as e:
             yield ErrorEvent(f"Failed to start {self.defn.name}: {e}")
             return
+        # Drain stderr concurrently: a child writing >64KB to stderr with a
+        # quiet stdout would otherwise block the pipe buffer and deadlock the
+        # stdout read loop below forever.
+        err_chunks: list[str] = []
+
+        def _drain_stderr() -> None:
+            if proc.stderr is not None:
+                err_chunks.append(proc.stderr.read())
+
+        stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
+        stderr_thread.start()
         try:
             for line in proc.stdout:
                 if self.defn.parser == "claude-json":
@@ -94,7 +106,23 @@ class AgentProvider:
             proc.kill()
             yield ErrorEvent(f"{self.defn.name}: timed out after {self.timeout}s")
             return
-        stderr = proc.stderr.read() if proc.stderr else ""
+        finally:
+            # Reap/kill the child even if the consumer abandons the generator
+            # (GeneratorExit/exception) so it can't run detached forever.
+            if proc.poll() is None:
+                try:
+                    proc.kill()
+                except ProcessLookupError:
+                    pass
+            proc.wait()
+            stderr_thread.join(timeout=5)
+            for pipe in (proc.stdout, proc.stderr):
+                if pipe is not None:
+                    try:
+                        pipe.close()
+                    except OSError:
+                        pass
+        stderr = "".join(err_chunks)
         if proc.returncode != 0:
             yield ErrorEvent(f"{self.defn.name} (exit {proc.returncode}): "
                              f"{shlex.join(cmd)}\n{stderr.strip()[-500:]}")

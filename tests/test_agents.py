@@ -1,6 +1,8 @@
 import os
 import stat
 
+import pytest
+
 from linchat.providers import agents
 from linchat.providers.base import Done, ErrorEvent, Message, TextDelta
 
@@ -80,3 +82,46 @@ def test_failure_yields_error_with_invocation(tmp_path, monkeypatch):
     err = [e for e in events if isinstance(e, ErrorEvent)][0]
     assert "exit 3" in err.message and "boom" in err.message
     assert "exec" in err.message
+
+
+def _make_script(tmp_path, name, body):
+    import stat
+    d = tmp_path / name
+    d.mkdir(parents=True, exist_ok=True)
+    script = d / name
+    script.write_text(body)
+    script.chmod(script.stat().st_mode | stat.S_IEXEC)
+    return str(script)
+
+
+def test_large_stderr_without_stdout_does_not_deadlock(tmp_path, monkeypatch):
+    # >128KB stderr with quiet stdout used to fill the 64KB pipe buffer and
+    # hang the stdout read loop forever (stderr was drained only after EOF).
+    line = "STDERR-CHUNK-BOUNDARY " + "padding " * 12
+    body = ("#!/bin/sh\n"
+            "printf 'start\\n'\n"
+            "i=0\n"
+            f"while [ $i -lt 3000 ]; do printf '%s\\n' {line!r} >&2; i=$((i+1)); done\n"
+            "exit 4\n")
+    binpath = _make_script(tmp_path, "chatty", body)
+    monkeypatch.setattr(agents, "_run_help", lambda b: "")
+    d = agents.AgentDef(name="chatty", binary=binpath, args=["run", "{prompt}"], parser="plain")
+    p = agents.AgentProvider(d, timeout=30)
+    events = list(p.stream([Message(role="user", content="x")]))  # hangs on regression
+    err = [e for e in events if isinstance(e, ErrorEvent)][0]
+    assert "exit 4" in err.message
+    assert "STDERR-CHUNK-BOUNDARY" in err.message  # tail of ~330KB stderr kept
+
+
+def test_abandoned_generator_kills_child(tmp_path, monkeypatch):
+    binpath = _make_script(tmp_path, "sleeper",
+                           "#!/bin/sh\necho $$\nsleep 60\n")
+    monkeypatch.setattr(agents, "_run_help", lambda b: "")
+    d = agents.AgentDef(name="sleeper", binary=binpath, args=["run", "{prompt}"], parser="plain")
+    p = agents.AgentProvider(d)
+    gen = p.stream([Message(role="user", content="x")])
+    first = next(gen)
+    pid = int(first.text.strip())
+    gen.close()
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)  # child must be killed AND reaped, not detached/zombied

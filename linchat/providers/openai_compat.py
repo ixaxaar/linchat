@@ -86,6 +86,22 @@ class OpenAICompatProvider:
 
         tool_acc: dict[int, dict] = {}  # index -> {id, name, args_str}
         saw_tool_calls = False
+
+        def flush_tool_calls() -> list[ToolCall]:
+            nonlocal saw_tool_calls
+            calls: list[ToolCall] = []
+            for idx in sorted(tool_acc):
+                acc = tool_acc[idx]
+                try:
+                    args = json.loads(acc["args"] or "{}")
+                except json.JSONDecodeError:
+                    args = {"_raw": acc["args"]}
+                calls.append(ToolCall(acc["id"], acc["name"], args))
+            if calls:
+                saw_tool_calls = True
+            tool_acc.clear()
+            return calls
+
         try:
             for data in iter_sse(resp):
                 if data == "[DONE]":
@@ -114,17 +130,12 @@ class OpenAICompatProvider:
                         acc["name"] = fn["name"]
                     if fn.get("arguments"):
                         acc["args"] += fn["arguments"]
-                finish = ch.get("finish_reason")
-                if finish == "tool_calls" and tool_acc:
-                    for idx in sorted(tool_acc):
-                        acc = tool_acc[idx]
-                        try:
-                            args = json.loads(acc["args"] or "{}")
-                        except json.JSONDecodeError:
-                            args = {"_raw": acc["args"]}
-                        yield ToolCall(acc["id"], acc["name"], args)
-                        saw_tool_calls = True
-                    tool_acc = {}
+                if ch.get("finish_reason") == "tool_calls":
+                    yield from flush_tool_calls()
+            # Compat servers (llama.cpp, LM Studio, vLLM) may end the stream
+            # ([DONE] or finish_reason stop/null) without a tool_calls finish
+            # chunk — flush anything accumulated so those calls don't vanish.
+            yield from flush_tool_calls()
             yield Done("tool_calls" if saw_tool_calls else "stop")
         except requests.RequestException as e:
             yield ErrorEvent(f"Stream error: {e.__class__.__name__}")
