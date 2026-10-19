@@ -1,0 +1,4 @@
+data: {"candidates":[{"content":{"role":"model","parts":[{"text":"Hello"}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":5,"candidatesTokenCount":2}}
+
+data: {"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"name":"shell.run","args":{"cmd":"ls"}}}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":9,"candidatesTokenCount":4}}
+
